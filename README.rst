@@ -34,7 +34,7 @@ Installation
 
 Arch Linux users can install chezetc from the AUR or archlinuxcn::
 
-   TODO (AUR package not upload yet)
+   $ paru -S chezetc
 
 For other distributions, ensure the following dependencies are installed:
 
@@ -107,8 +107,8 @@ it properly configured first.
 Bash:
    Generate completion code::
 
-      mkdir -p ~/.bash_completions/
-      ETC_MODE=BASH_COMPLETION chezetc > ~/.bash_completions/chezetc
+      $ mkdir -p ~/.bash_completions/
+      $ ETC_MODE=BASH_COMPLETION chezetc > ~/.bash_completions/chezetc
 
    Source the generated file in your ``.bashrc``::
 
@@ -117,8 +117,8 @@ Bash:
 Z shell
    Generate completion code::
 
-      mkdir -p ~/.zsh/completions/
-      ETC_MODE=ZSH_COMPLETION chezetc > ~/.zsh/completions/_chezetc
+      $ mkdir -p ~/.zsh/completions/
+      $ ETC_MODE=ZSH_COMPLETION chezetc > ~/.zsh/completions/_chezetc
 
    Add the path to ``$fpath`` in your ``.zshrc``, note that the statement
    **MUST** be placed before ``compinit``::
