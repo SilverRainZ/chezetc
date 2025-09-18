@@ -1,0 +1,4 @@
+sphinxcontrib-email
+sphinxcontrib.gtagjs
+pydata-sphinx-theme
+sphinx-last-updated-by-git

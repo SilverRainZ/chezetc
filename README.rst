@@ -1,50 +1,50 @@
 =======
-chezetc
+CHEZETC
 =======
 
-Extending chezmoi_ to manage files under ``/etc``.
+Extending chezmoi_ to manage files under /etc and other root-owned directories. 
 
-Please check out https:/silverrainz.me/chezetc for updates.
+For updates, please visit https://silverrainz.me/chezetc.
 
 .. _chezmoi: https://www.chezmoi.io
 
 Features
 ========
 
-Chezetc is a wrapper for chezmoi that makes it more than just a ``$HOME`` manager,
-allowing chezmoi to seamlessly:
+Chezetc enhances chezmoi, transforming it from a ``$HOME`` manager into a tool
+that can seamlessly:
 
-- Manage files in ``/etc`` and any other root-owned directories
-- Manage multiple chezmoi repositories without specifiing ``--config <PATH>``
-  manaully
+- Manage files in ``/etc`` and other directories owned by root.
+- Manage multiple chezmoi repositories without manually specifying
+  ``--config <PATH>``.
 
   .. note::
 
-     This is quite useful when you have file to manage on different host,
-     and you don't want to heaviely use the `template`_  of chezmoi.
+     This is particularly useful when managing files across different hosts,
+     avoiding over-reliance on chezmoi's `templating`_ feature.
 
-     .. _template: https://chezmoi.io/user-guide/templating/
+     .. _templating: https://chezmoi.io/user-guide/templating/
 
-As chezetc is a chezmoi wrapper, The Usage_ of chezetc is exactly the same as
-chezmoi.
+As chezetc is a wrapper around chezmoi, its usage is identical. Refer to the
+Usage_ section for details.
 
-Installion
-==========
+Installation
+============
 
-Arch Linux users can install chezetc from AUR or archlinuxcn::
+Arch Linux users can install chezetc from the AUR or archlinuxcn::
 
-   $ paru -S chezetc
+   TODO (AUR package not upload yet)
 
-For other users, make sure you have the following dependencies installed:
+For other distributions, ensure the following dependencies are installed:
 
-- chzemoi
-- sudo (MUST be properly configured, see also `Sudo Configuration`_)
+- chezmoi
+- sudo (must be properly configured; see `Sudo Configuration`_)
 - coreutils
 - bash
-- gettext (providing ``envsubst``)
+- gettext (provides ``envsubst``)
 
-The following dependencies are optional but highly recommanded, without them you
-CAN NOT customize the `Chzemoi Configuration`_.
+The following dependencies are optional but highly recommended. Without them,
+you cannot customize the `Chezmoi Configuration`_:
 
 - python >= 3.7
 - python-tomli
@@ -54,20 +54,20 @@ Then, clone the repository::
 
    $ git clone https://github.com/SilverRainZ/chezetc.git ~/.chezetc
 
-Finally, add `~/.chezetc`` to your ``$PATH``.
+Finally, add ``~/.chezetc`` to your ``$PATH``.
 
-.. _Chzemoi Configuration: https://www.chezmoi.io/reference/configuration-file/
+.. _Chezmoi Configuration: https://www.chezmoi.io/reference/configuration-file/
 .. _Sudo Configuration: https://wiki.archlinux.org/title/Sudo#Configuration
 
 Usage
 =====
 
-Users should first learn to use chezmoi before using chezetc.
-You can start by reading Chzemoi's documentation like `Quick Start`_ and
-`Configuration File`_, but there are some key differences to note:
+Users should familiarize themselves with chezmoi before using chezetc.
+Recommended starting points include the `Quick Start`_ guide and
+`Chezmoi Configuration`_ documentation. However,
+NOTE the following key differences:
 
-- Usage of chezetc CLI tool is exactly the same as chezmoi,
-  flags passed to chezetc will be forwarded to chezmoi::
+- The chezetc CLI tool usage is identical to chezmoi; all flags are forwarded::
 
      $ chezetc --help
      Manage your dotfiles across multiple diverse machines, securely
@@ -77,13 +77,9 @@ You can start by reading Chzemoi's documentation like `Quick Start`_ and
 
      ...
 
-  But user **MUST NOT** pass flags ``--config``, ``--cache`` and etc. to chezetc,
-  refer to end of `chezetc script`_ for a deny flag list
-- The default configuration will be read from
-  ``~/.config/chezetc/chezetc.toml``, only **TOML** format is supported.
-  Please **DON'T** specifing item like ``sourceDir``, ``destDir`` and etc.
-  The full deny list is mentioned in `chezmoi.toml template`_,
-- By default, chezetc manage ``/etc`` and store source path under
+  However, **DO NOT** pass flags such as ``--config``, ``--cache``, etc., to chezetc. Refer to the end of the `chezetc script`_ for a list of denied flags.
+- The default configuration is read from ``~/.config/chezetc/chezetc.toml``. Only **TOML** format is supported. Avoid specifying items like ``sourceDir``, ``destDir``, etc. The full deny list is available in the `chezmoi.toml template`_.
+- By default, chezetc manages ``/etc`` and stores the source files in
   ``~/.local/share/chezetc``::
 
      $ chezetc source-path
@@ -91,48 +87,44 @@ You can start by reading Chzemoi's documentation like `Quick Start`_ and
      $ chezetc target-path
      /etc
 
-- ``chezetc.toml`` only configurre the wrapped chezmoi, use
-  `Enviroment Variables` to configurate chezetc itself
+- The ``chezetc.toml`` file configures the wrapped chezmoi instance.
+  Use `Environment Variables`_ to configure chezetc itself.
 
 .. _Quick Start: https://www.chezmoi.io/quick-start/
-.. _Configuration File: https://www.chezmoi.io/reference/configuration-file/
 .. _chezetc script: ./chezetc
 .. _chezmoi.toml template: ./chezmoi.toml
 
-By default, chezetc manage ``/etc`` and store source st::
-
-   $ chezetc source-path
-   ~/etcfiles
-   $ chezetc target-path
-   /etc
-
-Enviroment Variables
---------------------
+Environment Variables
+---------------------
 
 ``$ETC_APP``
    :default: ``chezetc``
 
+   The name of the application.
+
 ``$ETC_SRC``
    :default: ``~/.local/share/chezetc``
 
-   As chezmoi configuration item ``sourceDir`` is hooked, user can customize
-   source path by setting this env var.
+   Overrides chezmoi's ``sourceDir`` configuration. Customize the source
+   directory by setting this variable.
+
 ``$ETC_DST``
    :default: ``/etc``
 
-   As chezmoi configuration item ``destDir`` is hooked, user can customize
-   managed directory (A.K.A. target path) by setting this env var.
+   Overrides chezmoi's ``destDir`` configuration. Customize the target
+   directory by setting this variable.
+
 ``$ETC_CFG``
    :default: ``~/.config/chezetc/chezetc.toml``
 
-   As chezmoi flag ``--config`` is hooked, user can customize
-   path of configuration file by setting this env var.
+   Overrides chezmoi's ``--config`` flag. Customize the configuration file path
+   by setting this variable.
+
 ``$EDITOR``
-   As chezmoi configuration item ``[edit.command]`` is hooked, user can customize
-   prefered editor by this env var.
+   Overrides chezmoi's ``[edit.command]`` configuration. Customize the
+   preferred editor by setting this variable.
 
-
-Multi source path
+Multi-source Path
 -----------------
 
 TODO
@@ -145,8 +137,8 @@ TODO
 Acknowledgements
 ================
 
-- Thanks to `@twpayne`_ and all the chezmoi developers for creating such a great tool
-- chezetc is highly insprtion from the `Discussion #1510`_
+- Thanks to `@twpayne`_ and all chezmoi developers for creating such a powerful tool.
+- Chezetc is heavily inspired by `Discussion #1510`_.
 
 .. _@twpayne: https://github.com/twpayne
 .. _Discussion #1510: https://github.com/twpayne/chezmoi/discussions/1510
@@ -156,6 +148,6 @@ License
 
 Copyright (c) 2025 `Shengyu Zhang`_
 
-Same as chezmoi, chezetc is released under the MIT license.
+Like chezmoi, chezetc is released under the MIT license.
 
 .. _Shengyu Zhang: https://silverrainz.me
