@@ -2,7 +2,8 @@
 CHEZETC
 =======
 
-Extending chezmoi_ to manage files under /etc and other root-owned directories. 
+Extending chezmoi_ to manage files under ``/etc`` and other root-owned
+directories.
 
 For updates, please visit https://silverrainz.me/chezetc.
 
@@ -94,45 +95,81 @@ NOTE the following key differences:
 .. _chezetc script: ./chezetc
 .. _chezmoi.toml template: ./chezmoi.toml
 
+Multi-application
+-----------------
+
+Shell Completion
+----------------
+
+chezetc reuses the `Shell Completion of Chezmoi`_, so make sure your have
+it properly configured first.
+
+Bash:
+   Generate completion code::
+
+      mkdir -p ~/.bash_completions/
+      ETC_MODE=BASH_COMPLETION chezetc > ~/.bash_completions/chezetc
+
+   Source the generated file in your ``.bashrc``::
+
+      source ~/.bash_completions/chezetc
+
+Z shell
+   Generate completion code::
+
+      mkdir -p ~/.zsh/completions/
+      ETC_MODE=ZSH_COMPLETION chezetc > ~/.zsh/completions/_chezetc
+
+   Add the path to ``$fpath`` in your ``.zshrc``, note that the statement
+   **MUST** be placed before ``compinit``::
+
+      fpath=(~/.zsh/completions $fpath)
+
+.. _Shell Completion of Chezmoi: https://www.chezmoi.io/reference/commands/completion/
+
 Environment Variables
 ---------------------
 
 ``$ETC_APP``
-   :default: ``chezetc``
+   :default: ``'chezetc'``
 
-   The name of the application.
+   The name of the chezetc application.
+
+   TODO.
 
 ``$ETC_SRC``
-   :default: ``~/.local/share/chezetc``
+   :default: ``'~/.local/share/chezetc'``
 
    Overrides chezmoi's ``sourceDir`` configuration. Customize the source
    directory by setting this variable.
 
 ``$ETC_DST``
-   :default: ``/etc``
+   :default: ``'/etc'``
 
    Overrides chezmoi's ``destDir`` configuration. Customize the target
    directory by setting this variable.
 
 ``$ETC_CFG``
-   :default: ``~/.config/chezetc/chezetc.toml``
+   :default: ``'~/.config/chezetc/chezetc.toml'``
 
    Overrides chezmoi's ``--config`` flag. Customize the configuration file path
    by setting this variable.
 
+``$ETC_MODE``
+   :default: ``'CHEZMOI'``
+   :choice: ``['CHEZMOI', 'BASH_COMPLETION', 'ZSH_COMPLETION']``
+
+   Different modes affect the operating behavior of chezetc:
+
+   :``CHEZMOI``: Run as chezmoi wrapper, this is the default behavior
+   :``BASH_COMPLETION``: Print bash shell completion code,
+                         see `Shell Completion`_ for more details
+   :``ZSH_COMPLETION``: Print Z shell completion code,
+                        see `Shell Completion`_ for more details
+
 ``$EDITOR``
-   Overrides chezmoi's ``[edit.command]`` configuration. Customize the
+   Overrides chezmoi's ``edit.command`` configuration. Customize the
    preferred editor by setting this variable.
-
-Multi-source Path
------------------
-
-TODO
-
-Shell Completion
-----------------
-
-TODO
 
 Acknowledgements
 ================

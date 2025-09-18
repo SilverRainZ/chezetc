@@ -6,11 +6,13 @@
 #
 # Extending chezmoi to manage files under /etc.
 #
-# Please check out https:/silverrainz.me/chezetc for updates.
+# Please check out https://silverrainz.me/chezetc for updates.
 #
 # Version 202509.1
 #
 # Copyright (c) 2025 Shengyu Zhang.
+#
+# TODO: shellcheck
 
 
 if [ "$1" == "__complete" ]; then
@@ -46,10 +48,15 @@ create_dir() {
 }
 
 update_file() {
-    # $1: new_data, $2: old_file, require :pacman:`gettext`
-    [[ "$(cat $1 | envsubst)" != "$(cat $2)" ]] && EAGAIN=1 && \
+    # $1: src, $2: dst, require :pacman:`gettext`
+    src="$(cat $1)" && [[ "$src" != "$(cat $2)" ]] && EAGAIN=1 && \
         info "Updating file $2..." && \
-        cat $1 | envsubst > $2
+        echo "$src" > "$2"
+}
+
+update_tmpl() {
+    # $1: template, $2: generated file, require :pacman:`gettext`
+    update_file <(cat $1 | envsubst) $2
 }
 
 test_cmd() {
@@ -74,11 +81,13 @@ XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
 # Chezetc vars.
 ETC_DIR="$(realpath $(dirname $0))"
-# Configure-able chezetc vars.
+# Configure-able chezetc vars. see 
+# See also https://silverrainz.me/chezetc/#environment-variables
 ETC_APP=$(basename ${ETC_APP:-$0})
 ETC_SRC="${ETC_SRC:-$HOME/etcfiles}"
 ETC_DST="${ETC_DST:-etc}"
 ETC_CFG="${ETC_CFG:-$XDG_CONFIG_HOME/chezetc/$ETC_APP.toml}"
+ETC_MODE="${ETC_MODE:-CHEZMOI}"
 
 # Chezmoi vars.
 MOI_CFG_FN="chezmoi.toml"
@@ -89,11 +98,8 @@ MOI_CACHE_DIR="$XDG_CACHE_HOME/chezmoi/$ETC_APP"
 MOI_CFG_TMPL="$ETC_DIR/$MOI_CFG_FN"
 MOI_CFG="$MOI_CFG_DIR/$MOI_CFG_FN"
 
-# Shell completion.
-BASH_COMP_PATH="$HOME/.bash_completions"
-BASH_COMP_TMPL="$ETC_DIR/completions/chezetc.bash"
-ZSH_COMP_PATH="$HOME/.zsh/completions"
-ZSH_COMP_TMPL="$ETC_DIR/completions/chezetc.zsh"
+# Print shell completion code.
+[[ "$ETC_MODE" == *_COMPLETION ]] && source "$ETC_DIR/utils/completion.sh"
 
 #-------------------------------------------------------------------------------
 # Setup the chezmoi wrapper environment.
@@ -112,29 +118,15 @@ create_dir $MOI_CACHE_DIR
 export ETC_APP ETC_DIR MOI_SRC_DIR MOI_DST_DIR
 if test_cmd python3 && test_pymod tomli && test_pymod tomli_w; then
     CACHED_CFG="$MOI_CACHE_DIR/$ETC_APP.toml"
-    update_file "$MOI_CFG_TMPL" "$CACHED_CFG"
-    python3 $ETC_DIR/utils/toml-merge.py "$CACHED_CFG" "$ETC_CFG" "$MOI_CFG"
+    update_tmpl "$MOI_CFG_TMPL" "$CACHED_CFG"
+    update_file <("$ETC_DIR/utils/toml-merge.py" "$CACHED_CFG" "$ETC_CFG") "$MOI_CFG"
 else
     warn "Python3 and its modules \"tomli\", \"tomli_w\" are not installed, user CAN NOT customize chezmoi config"
-    update_file "$MOI_CFG_TMPL" "$MOI_CFG"
-fi
-
-# Setup bash completion.
-if [[ "$(basename $SHELL)" == "bash" ]]; then
-    create_dir $BASH_COMP_PATH
-    export ETC_APP
-    update_file "$BASH_COMP_TMPL" "$BASH_COMP_PATH/_$ETC_APP"
-fi
-
-# Setup zsh completion.
-if [[ "$(basename $SHELL)" == "zsh" ]]; then
-    create_dir $ZSH_COMP_PATH
-    export ETC_APP
-    update_file "$ZSH_COMP_TMPL" "$ZSH_COMP_PATH/_$ETC_APP"
+    update_tmpl "$MOI_CFG_TMPL" "$MOI_CFG"
 fi
 
 [[ ! -z "$EAGAIN" ]] && \
-    info "Configuration changed, please execute $ETC_APP again" && \
+    info "Configuration updated, please execute $ETC_APP again" && \
     exit 0
 
 #-------------------------------------------------------------------------------
