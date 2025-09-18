@@ -1,0 +1,148 @@
+#!/bin/bash
+#
+################################################################################
+#                                   chezetc                                    #
+################################################################################
+#
+# Extending chezmoi to manage files under /etc.
+#
+# Please check out https:/silverrainz.me/chezetc for updates.
+#
+# Version 202509.1
+#
+# Copyright (c) 2025 Shengyu Zhang.
+
+
+if [ "$1" == "__complete" ]; then
+    # Script is called from completion script, pass arguments unchanged.
+    exec chezmoi "$@"
+fi
+
+#-------------------------------------------------------------------------------
+# Helper functions.
+#-------------------------------------------------------------------------------
+
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+info() {
+    printf "${GREEN}$*${NC}\n" >/dev/stderr
+}
+
+warn() {
+    printf "${YELLOW}WARN: $*${NC}\n" >/dev/stderr
+}
+
+err() {
+    printf "${RED}ERR: $*${NC}\n" >/dev/stderr && exit 1
+}
+
+create_dir() {
+    [[ ! -d "$1" ]] && EAGAIN=1 && \
+        info "Creating dir $1..." && \
+        mkdir -p $1
+}
+
+update_file() {
+    # $1: new_data, $2: old_file, require :pacman:`gettext`
+    [[ "$(cat $1 | envsubst)" != "$(cat $2)" ]] && EAGAIN=1 && \
+        info "Updating file $2..." && \
+        cat $1 | envsubst > $2
+}
+
+test_cmd() {
+    command -v $1 2>&1 >/dev/null
+}
+
+assert_cmd() {
+    test_cmd $1 || err "Command \"$_\" not found"
+}
+
+test_pymod() {
+    python3 -c "import $1" 2>/dev/null
+}
+
+#-------------------------------------------------------------------------------
+# Meta informations.
+#-------------------------------------------------------------------------------
+
+# XDG vars.
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# Chezetc vars.
+ETC_DIR="$(realpath $(dirname $0))"
+# Configure-able chezetc vars.
+ETC_APP=$(basename ${ETC_APP:-$0})
+ETC_SRC="${ETC_SRC:-$HOME/etcfiles}"
+ETC_DST="${ETC_DST:-etc}"
+ETC_CFG="${ETC_CFG:-$XDG_CONFIG_HOME/chezetc/$ETC_APP.toml}"
+
+# Chezmoi vars.
+MOI_CFG_FN="chezmoi.toml"
+MOI_SRC_DIR="$ETC_SRC"
+MOI_DST_DIR="/$ETC_DST"
+MOI_CFG_DIR="$XDG_CONFIG_HOME/chezmoi/$ETC_APP"
+MOI_CACHE_DIR="$XDG_CACHE_HOME/chezmoi/$ETC_APP"
+MOI_CFG_TMPL="$ETC_DIR/$MOI_CFG_FN"
+MOI_CFG="$MOI_CFG_DIR/$MOI_CFG_FN"
+
+# Shell completion.
+BASH_COMP_PATH="$HOME/.bash_completions"
+BASH_COMP_TMPL="$ETC_DIR/completions/chezetc.bash"
+ZSH_COMP_PATH="$HOME/.zsh/completions"
+ZSH_COMP_TMPL="$ETC_DIR/completions/chezetc.zsh"
+
+#-------------------------------------------------------------------------------
+# Setup the chezmoi wrapper environment.
+#-------------------------------------------------------------------------------
+
+# Check dependencies.
+assert_cmd chezmoi
+assert_cmd envsubst
+
+# Create dirs for first time.
+create_dir $MOI_SRC_DIR
+create_dir $MOI_CFG_DIR
+create_dir $MOI_CACHE_DIR
+
+# Generate config file from template and envs.
+export ETC_APP ETC_DIR MOI_SRC_DIR MOI_DST_DIR
+if test_cmd python3 && test_pymod tomli && test_pymod tomli_w; then
+    CACHED_CFG="$MOI_CACHE_DIR/$ETC_APP.toml"
+    update_file "$MOI_CFG_TMPL" "$CACHED_CFG"
+    python3 $ETC_DIR/utils/toml-merge.py "$CACHED_CFG" "$ETC_CFG" "$MOI_CFG"
+else
+    warn "Python3 and its modules \"tomli\", \"tomli_w\" are not installed, user CAN NOT customize chezmoi config"
+    update_file "$MOI_CFG_TMPL" "$MOI_CFG"
+fi
+
+# Setup bash completion.
+if [[ "$(basename $SHELL)" == "bash" ]]; then
+    create_dir $BASH_COMP_PATH
+    export ETC_APP
+    update_file "$BASH_COMP_TMPL" "$BASH_COMP_PATH/_$ETC_APP"
+fi
+
+# Setup zsh completion.
+if [[ "$(basename $SHELL)" == "zsh" ]]; then
+    create_dir $ZSH_COMP_PATH
+    export ETC_APP
+    update_file "$ZSH_COMP_TMPL" "$ZSH_COMP_PATH/_$ETC_APP"
+fi
+
+[[ ! -z "$EAGAIN" ]] && \
+    info "Configuration changed, please execute $ETC_APP again" && \
+    exit 0
+
+#-------------------------------------------------------------------------------
+# Forward it to chezmoi and let it do the real work.
+#-------------------------------------------------------------------------------
+
+sudo --preserve-env=PATH,EDITOR,VISUAL -- \
+    chezmoi "$@" \
+    --config="$MOI_CFG" \
+    --persistent-state="$MOI_CFG_DIR/chezmoistate.boltdb" \
+    --cache="$MOI_CACHE_DIR"
