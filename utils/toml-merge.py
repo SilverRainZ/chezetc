@@ -15,4 +15,4 @@ def load(fn):
 
 a = load(sys.argv[1])
 b = load(sys.argv[2])
-tomli_w.dumps(a | b)
+print(tomli_w.dumps(a | b))
