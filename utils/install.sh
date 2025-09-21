@@ -12,7 +12,7 @@ LIBDIR="$DESTDIR$PREFIX/lib/$PKGNAME"
 install -Dm775 <(echo '') "$BINDIR/$PKGNAME"
 cat <<EOF >> "$BINDIR/$PKGNAME"
 #!/bin/bash
-exec $PREFIX/lib/chezetc/chezetc "$@"
+exec $PREFIX/lib/chezetc/chezetc "\$@"
 EOF
 
 # Install the real script.
