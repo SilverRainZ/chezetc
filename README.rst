@@ -63,10 +63,48 @@ Finally, add ``~/.chezetc`` to your ``$PATH``.
 Usage
 =====
 
-Users should familiarize themselves with chezmoi before using chezetc.
-Recommended starting points include the `Quick Start`_ guide and
-`Chezmoi Configuration`_ documentation. However,
-NOTE the following key differences:
+After installing dependencies and adding ``~/.chezetc`` to your ``$PATH``,
+you can start managing your ``/etc`` files::
+
+1. Initialize a new chezetc repository::
+
+      $ chezetc init
+
+   This is a one-time setup, and will This will create a new Git repository in
+   ``~/.local/share/chezetc`` where chezmoi will store its source files.
+
+2. Manage your first file with chezmoi, for example, your nginx config file::
+
+      $ chezetc add /etc/hostname
+
+   This will copy ``/etc/nginx/nginx.conf`` to ``~/.local/share/chezetc/nginx/nginx.conf``.
+
+3. Edit the source file in your repository::
+
+      $ chezetc edit ~/.local/share/chezetc/nginx/nginx.conf
+
+   Or::
+
+      $ chezetc edit /etc/nginx/nginx.conf
+
+   This will open the corrsponding file in your ``$EDITOR``. Make some changes
+   and save the file.
+
+4. See what changes chezetc will apply::
+
+   $ chezetc diff
+
+5. Apply the changes (this will require sudo password)::
+
+   $ chezetc -v apply
+
+This workflow is the same as chezmoi, but it securely handles sudo permissions
+to modify system files. See `Quick Start of chezmoi`_ guide for more details.
+
+.. _Quick Start of chezmoi: https://www.chezmoi.io/quick-start/
+
+Key Differences with Chezmoi
+----------------------------
 
 - The chezetc CLI tool usage is identical to chezmoi; all flags are forwarded::
 
@@ -78,25 +116,75 @@ NOTE the following key differences:
 
      ...
 
-  However, **DO NOT** pass flags such as ``--config``, ``--cache``, etc., to chezetc. Refer to the end of the `chezetc script`_ for a list of denied flags.
-- The default configuration is read from ``~/.config/chezetc/chezetc.toml``. Only **TOML** format is supported. Avoid specifying items like ``sourceDir``, ``destDir``, etc. The full deny list is available in the `chezmoi.toml template`_.
-- By default, chezetc manages ``/etc`` and stores the source files in
-  ``~/.local/share/chezetc``::
+  However, **DO NOT** pass flags such as ``--config``, ``--cache``, etc.,
+  to chezetc. Refer to the end of the `chezetc script`_ for a list of denied flags.
 
-     $ chezetc source-path
-     ~/.local/share/chezetc
-     $ chezetc target-path
-     /etc
+- The default configuration is read from ``~/.config/chezetc/chezetc.toml``.
+  Only **TOML** format is supported. Avoid specifying items like ``sourceDir``,
+  ``destDir``, etc. The full deny list is available in the
+  `chezmoi.toml template`_.
+
+- By default, chezetc manages ``/etc`` and stores the source files in
+  ``~/.local/share/chezetc``, user can customize them via ``$ETC_DST`` and
+  ``$ETC_SRC``, see `Configuration`_ for more details.
 
 - The ``chezetc.toml`` file configures the wrapped chezmoi instance.
-  Use `Environment Variables`_ to configure chezetc itself.
+  See `Configuration`_ for configuring chezetc itself.
 
-.. _Quick Start: https://www.chezmoi.io/quick-start/
 .. _chezetc script: ./chezetc
 .. _chezmoi.toml template: ./chezmoi.toml
 
-Multi-application
------------------
+Configuration
+=============
+
+chezetc can be customized by setting environment variables:
+
+``$ETC_SRC``
+   :default: ``'~/.local/share/chezetc'``
+
+   Overrides chezmoi's ``sourceDir`` configuration. Customize the source
+   directory by setting this variable.
+
+``$ETC_DST``
+   :default: ``'/etc'``
+
+   Overrides chezmoi's ``destDir`` configuration. Customize the target
+   directory by setting this variable.
+
+``$ETC_CFG``
+   :default: ``'~/.config/chezetc/chezetc.toml'``
+
+   Overrides chezmoi's ``--config`` flag. Customize the configuration file path by setting this variable.
+
+``$ETC_MODE``
+   :default: ``'CHEZMOI'``
+   :choice: ``['CHEZMOI', 'BASH_COMPLETION', 'ZSH_COMPLETION']``
+
+   Different modes affect the operating behavior of chezetc:
+
+   :``CHEZMOI``: Run as chezmoi wrapper, this is the default behavior
+   :``BASH_COMPLETION``: Print bash shell completion code,
+                         see `Shell Completion`_ for more details
+   :``ZSH_COMPLETION``: Print Z shell completion code,
+                        see `Shell Completion`_ for more details
+
+``$ETC_APP``
+   :default: ``'chezetc'``
+
+   The ID of the chezetc application.
+
+   You can create a new, independent instance by setting a different value.
+   This is ideal for managing files on a different host or in a different
+   root-owned directory.
+
+   See also `Per-Host Configuration Management`_.
+
+``$EDITOR``
+   Overrides chezmoi's ``edit.command`` configuration. Customize the
+   preferred editor by setting this variable.
+
+Tips
+====
 
 Shell Completion
 ----------------
@@ -127,49 +215,29 @@ Z shell
 
 .. _Shell Completion of Chezmoi: https://www.chezmoi.io/reference/commands/completion/
 
-Environment Variables
----------------------
+Per-Host Configuration Management
+---------------------------------
 
-``$ETC_APP``
-   :default: ``'chezetc'``
+Create a script (``~/bin/chezetc-host``), which demonstrates how to manage a
+distinct set of files in ``/etc`` for each host, stored in a Git repository::
 
-   The name of the chezetc application.
+   #!/bin/bash
 
-   TODO.
+   export ETC_APP=$0
+   export ETC_SRC="$HOME/git/etcfiles/$HOST"
+   exec chezetc "$@"
 
-``$ETC_SRC``
-   :default: ``'~/.local/share/chezetc'``
+Make it executable::
 
-   Overrides chezmoi's ``sourceDir`` configuration. Customize the source
-   directory by setting this variable.
+   $ chmod +x ~/bin/chezetc-host
 
-``$ETC_DST``
-   :default: ``'/etc'``
+Initialize and use the new instance::
 
-   Overrides chezmoi's ``destDir`` configuration. Customize the target
-   directory by setting this variable.
+   chezetc-host init
+   chezetc-host add /etc/nginx/nginx.conf
 
-``$ETC_CFG``
-   :default: ``'~/.config/chezetc/chezetc.toml'``
-
-   Overrides chezmoi's ``--config`` flag. Customize the configuration file path
-   by setting this variable.
-
-``$ETC_MODE``
-   :default: ``'CHEZMOI'``
-   :choice: ``['CHEZMOI', 'BASH_COMPLETION', 'ZSH_COMPLETION']``
-
-   Different modes affect the operating behavior of chezetc:
-
-   :``CHEZMOI``: Run as chezmoi wrapper, this is the default behavior
-   :``BASH_COMPLETION``: Print bash shell completion code,
-                         see `Shell Completion`_ for more details
-   :``ZSH_COMPLETION``: Print Z shell completion code,
-                        see `Shell Completion`_ for more details
-
-``$EDITOR``
-   Overrides chezmoi's ``edit.command`` configuration. Customize the
-   preferred editor by setting this variable.
+The source file will be created in
+``~/git/etcfiles/YOUR-HOSTNAME/nginx/nginx.conf``
 
 Acknowledgements
 ================
