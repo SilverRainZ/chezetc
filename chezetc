@@ -78,13 +78,14 @@ test_pymod() {
 # XDG vars.
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 # Chezetc vars.
 ETC_DIR="$(realpath $(dirname $0))"
 # Configure-able chezetc vars. see 
 # See also https://silverrainz.me/chezetc/#environment-variables
 ETC_APP=$(basename ${ETC_APP:-$0})
-ETC_SRC="${ETC_SRC:-$HOME/etcfiles}"
+ETC_SRC="${ETC_SRC:-$XDG_DATA_HOME/$ETC_APP}"
 ETC_DST="${ETC_DST:-etc}"
 ETC_CFG="${ETC_CFG:-$XDG_CONFIG_HOME/chezetc/$ETC_APP.toml}"
 ETC_MODE="${ETC_MODE:-CHEZMOI}"
