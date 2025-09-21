@@ -34,6 +34,8 @@ NON_EXEC_FILES=(
     README.rst
     chezmoi.toml
     utils/completion.sh
+    completions/chezetc.zsh
+    completions/chezetc.sh
 )
 for i in ${NON_EXEC_FILES[@]}; do
     install -Dm644 $SRCDIR/$i "$LIBDIR/$i"
