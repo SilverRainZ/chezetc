@@ -32,9 +32,10 @@ Usage_ section for details.
 Installation
 ============
 
-Arch Linux users can install chezetc from the AUR or archlinuxcn::
+Users can install chezetc from the following repositories:
 
-   $ paru -S chezetc
+.. image:: https://repology.org/badge/vertical-allrepos/chezetc.svg?columns=3
+   :target: https://repology.org/project/chezetc/versions
 
 For other distributions, ensure the following dependencies are installed:
 
