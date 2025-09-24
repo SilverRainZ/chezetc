@@ -8,7 +8,7 @@
 #
 # Please check out https://silverrainz.me/chezetc for updates.
 #
-# Version 202509.6
+# Version $ETC_VER.
 #
 # Copyright (c) 2025 Shengyu Zhang.
 #
@@ -82,6 +82,7 @@ XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 # Chezetc vars.
 ETC_DIR="$(realpath $(dirname $0))"
+ETC_VER="202509.6"
 # Configure-able chezetc vars. see 
 # See also https://silverrainz.me/chezetc/#environment-variables
 ETC_APP=$(basename ${ETC_APP:-$0})
@@ -99,8 +100,16 @@ MOI_CACHE_DIR="$XDG_CACHE_HOME/chezmoi/$ETC_APP"
 MOI_CFG_TMPL="$ETC_DIR/$MOI_CFG_FN"
 MOI_CFG="$MOI_CFG_DIR/$MOI_CFG_FN"
 
+#-------------------------------------------------------------------------------
+# Select running mode.
+#-------------------------------------------------------------------------------
+
 # Print shell completion code.
 [[ "$ETC_MODE" == *_COMPLETION ]] && source "$ETC_DIR/utils/completion.sh"
+# Print version
+[[ "$ETC_MODE" == "VERSION" ]] && echo "$ETC_VER" && exit 0
+# Passthrough for CHEZMOI.
+[[ "$ETC_MODE" != "CHEZMOI" ]] && error "Unknown ETC_MODE: $ETC_MODE" && exit 1
 
 #-------------------------------------------------------------------------------
 # Setup the chezmoi wrapper environment.
