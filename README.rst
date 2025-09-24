@@ -75,7 +75,7 @@ you can start managing your ``/etc`` files::
 
 2. Manage your first file with chezmoi, for example, your nginx config file::
 
-      $ chezetc add /etc/hostname
+      $ chezetc add /etc/nginx/nginx.conf
 
    This will copy ``/etc/nginx/nginx.conf`` to ``~/.local/share/chezetc/nginx/nginx.conf``.
 
