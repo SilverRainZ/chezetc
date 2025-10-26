@@ -5,7 +5,8 @@ CHEZETC
 Extending chezmoi_ to manage files under ``/etc`` and other root-owned
 directories.
 
-For updates, please visit https://silverrainz.me/chezetc.
+:Source code:   https://github.com/SilverRainZ/chezetc.git
+:Documentation: https://silverrainz.me/chezetc
 
 .. _chezmoi: https://www.chezmoi.io
 
@@ -71,7 +72,7 @@ you can start managing your ``/etc`` files::
 
       $ chezetc init
 
-   This is a one-time setup, and will This will create a new Git repository in
+   This is a one-time setup, and will create a new Git repository in
    ``~/.local/share/chezetc`` where chezmoi will store its source files.
 
 2. Manage your first file with chezmoi, for example, your nginx config file::
