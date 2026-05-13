@@ -46,12 +46,8 @@ For other distributions, ensure the following dependencies are installed:
 - bash
 - gettext (provides ``envsubst``)
 
-The following dependencies are optional but highly recommended. Without them,
-you cannot customize the `Chezmoi Configuration`_:
-
-- python >= 3.7
-- python-tomli
-- python-tomli-w
+User template data can be provided via ``~/.config/chezetc/chezetc.toml``,
+which is passed to chezmoi as ``--override-data-file``.
 
 Then, clone the repository::
 

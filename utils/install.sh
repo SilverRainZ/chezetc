@@ -22,7 +22,6 @@ install -Dm775 "$SRCDIR/chezetc" "$LIBDIR/$PKGNAME"
 EXEC_FILES=(
     commands/cd
     commands/editor
-    utils/toml-merge.py
     hooks/post-add-chown.sh
 )
 for i in ${EXEC_FILES[@]}; do
