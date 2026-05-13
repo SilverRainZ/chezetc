@@ -8,6 +8,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="${CHEZETC_REPO:-$(dirname "$SCRIPT_DIR")}"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
@@ -64,8 +67,8 @@ CHEZETC_DIR="$WORKDIR/chezetc"
 mkdir -p "$CHEZETC_DIR"/{utils,commands,hooks}
 
 # Copy the actual chezetc script and template
-cp /home/la/git/chezetc/chezetc "$CHEZETC_DIR/"
-cp /home/la/git/chezetc/chezmoi.toml "$CHEZETC_DIR/"
+cp "$REPO_ROOT/chezetc" "$CHEZETC_DIR/"
+cp "$REPO_ROOT/chezmoi.toml" "$CHEZETC_DIR/"
 
 # Create required shim/hook files (content doesn't matter for this test)
 touch "$CHEZETC_DIR/commands/editor"
